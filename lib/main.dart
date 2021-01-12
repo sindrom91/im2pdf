@@ -90,7 +90,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: pickImages,
-        tooltip: 'Increment',
+        tooltip: 'Add files for conversion',
         child: Icon(Icons.add),
       ),
     );
