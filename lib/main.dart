@@ -77,21 +77,40 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        actions: [
-          IconButton(
-              icon: const Icon(Icons.compare_arrows), onPressed: convertToPdf),
+      body: Column(
+        children: [
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: pickImages,
+                tooltip: 'Add images for conversion',
+              ),
+              IconButton(
+                icon: const Icon(Icons.arrow_upward),
+                onPressed: () {},
+                tooltip: 'Move selected image up',
+              ),
+              IconButton(
+                icon: const Icon(Icons.arrow_downward),
+                onPressed: () {},
+                tooltip: 'Move selected image down',
+              ),
+            ],
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(10),
+              itemCount: pickedImages.length,
+              itemBuilder: (context, index) => Text(pickedImages[index].path),
+            ),
+          ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: pickedImages.length,
-        itemBuilder: (context, index) => Text(pickedImages[index].path),
-      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: pickImages,
-        tooltip: 'Add files for conversion',
-        child: Icon(Icons.add),
+        onPressed: convertToPdf,
+        tooltip: 'Convert picked images to PDF',
+        child: const Icon(Icons.compare_arrows),
       ),
     );
   }
