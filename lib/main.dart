@@ -78,74 +78,92 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
+      body: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              IconButton(
-                iconSize: 30.0,
-                icon: const Icon(Icons.add),
-                onPressed: pickImages,
-                tooltip: 'Add images for conversion',
-              ),
-              IconButton(
-                iconSize: 30.0,
-                icon: const Icon(Icons.arrow_upward),
-                onPressed: () {
-                  if (selectedIndex <= 0) {
-                    return;
-                  }
-                  setState(() {
-                    final selectedItem = pickedImages[selectedIndex];
-                    pickedImages.removeAt(selectedIndex);
-                    pickedImages.insert(selectedIndex - 1, selectedItem);
-                    selectedIndex = selectedIndex - 1;
-                  });
-                },
-                tooltip: 'Move selected image up',
-              ),
-              IconButton(
-                iconSize: 30.0,
-                icon: const Icon(Icons.arrow_downward),
-                onPressed: () {
-                  if (selectedIndex < 0 ||
-                      selectedIndex == pickedImages.length - 1) {
-                    return;
-                  }
-                  setState(() {
-                    final selectedItem = pickedImages[selectedIndex];
-                    pickedImages.removeAt(selectedIndex);
-                    pickedImages.insert(selectedIndex + 1, selectedItem);
-                    selectedIndex = selectedIndex + 1;
-                  });
-                },
-                tooltip: 'Move selected image down',
-              ),
-            ],
-          ),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(10),
-              itemCount: pickedImages.length,
-              itemBuilder: (context, index) => Container(
-                color: selectedIndex == index
-                    ? Colors.blue.withOpacity(0.5)
-                    : Colors.transparent,
-                child: ListTile(
-                  title: Text(pickedImages[index].path),
-                  onTap: () {
-                    setState(() {
-                      if (selectedIndex == index) {
-                        selectedIndex = -1;
-                      } else {
-                        selectedIndex = index;
-                      }
-                    });
-                  },
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    IconButton(
+                      iconSize: 30.0,
+                      icon: const Icon(Icons.add),
+                      onPressed: pickImages,
+                      tooltip: 'Add images for conversion',
+                    ),
+                    IconButton(
+                      iconSize: 30.0,
+                      icon: const Icon(Icons.arrow_upward),
+                      onPressed: () {
+                        if (selectedIndex <= 0) {
+                          return;
+                        }
+                        setState(() {
+                          final selectedItem = pickedImages[selectedIndex];
+                          pickedImages.removeAt(selectedIndex);
+                          pickedImages.insert(selectedIndex - 1, selectedItem);
+                          selectedIndex = selectedIndex - 1;
+                        });
+                      },
+                      tooltip: 'Move selected image up',
+                    ),
+                    IconButton(
+                      iconSize: 30.0,
+                      icon: const Icon(Icons.arrow_downward),
+                      onPressed: () {
+                        if (selectedIndex < 0 ||
+                            selectedIndex == pickedImages.length - 1) {
+                          return;
+                        }
+                        setState(() {
+                          final selectedItem = pickedImages[selectedIndex];
+                          pickedImages.removeAt(selectedIndex);
+                          pickedImages.insert(selectedIndex + 1, selectedItem);
+                          selectedIndex = selectedIndex + 1;
+                        });
+                      },
+                      tooltip: 'Move selected image down',
+                    ),
+                  ],
                 ),
-              ),
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(10),
+                    itemCount: pickedImages.length,
+                    itemBuilder: (context, index) => Container(
+                      color: selectedIndex == index
+                          ? Colors.blue.withOpacity(0.5)
+                          : Colors.transparent,
+                      child: ListTile(
+                        title: Text(pickedImages[index].path),
+                        onTap: () {
+                          setState(() {
+                            if (selectedIndex == index) {
+                              selectedIndex = -1;
+                            } else {
+                              selectedIndex = index;
+                            }
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
+          if (selectedIndex >= 0)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  right: 10,
+                  top: 10,
+                  bottom: 10,
+                ),
+                child: Image.file(pickedImages[selectedIndex]),
+              ),
+            ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
