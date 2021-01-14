@@ -83,16 +83,19 @@ class _MyHomePageState extends State<MyHomePage> {
           Row(
             children: [
               IconButton(
+                iconSize: 30.0,
                 icon: const Icon(Icons.add),
                 onPressed: pickImages,
                 tooltip: 'Add images for conversion',
               ),
               IconButton(
+                iconSize: 30.0,
                 icon: const Icon(Icons.arrow_upward),
                 onPressed: () {},
                 tooltip: 'Move selected image up',
               ),
               IconButton(
+                iconSize: 30.0,
                 icon: const Icon(Icons.arrow_downward),
                 onPressed: () {},
                 tooltip: 'Move selected image down',
