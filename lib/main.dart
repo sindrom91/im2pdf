@@ -33,6 +33,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   List<File> pickedImages = [];
+  int selectedIndex = -1;
 
   Future<void> pickImages() async {
     final files = await FileSelectorPlatform.instance.openFiles(
@@ -102,7 +103,23 @@ class _MyHomePageState extends State<MyHomePage> {
             child: ListView.builder(
               padding: const EdgeInsets.all(10),
               itemCount: pickedImages.length,
-              itemBuilder: (context, index) => Text(pickedImages[index].path),
+              itemBuilder: (context, index) => Container(
+                color: selectedIndex == index
+                    ? Colors.blue.withOpacity(0.5)
+                    : Colors.transparent,
+                child: ListTile(
+                  title: Text(pickedImages[index].path),
+                  onTap: () {
+                    setState(() {
+                      if (selectedIndex == index) {
+                        selectedIndex = -1;
+                      } else {
+                        selectedIndex = index;
+                      }
+                    });
+                  },
+                ),
+              ),
             ),
           ),
         ],
