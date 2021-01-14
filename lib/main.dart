@@ -151,7 +151,7 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: convertToPdf,
         tooltip: 'Convert picked images to PDF',
-        child: const Icon(Icons.compare_arrows),
+        child: const Icon(Icons.refresh),
       ),
     );
   }
