@@ -91,13 +91,34 @@ class _MyHomePageState extends State<MyHomePage> {
               IconButton(
                 iconSize: 30.0,
                 icon: const Icon(Icons.arrow_upward),
-                onPressed: () {},
+                onPressed: () {
+                  if (selectedIndex <= 0) {
+                    return;
+                  }
+                  setState(() {
+                    final selectedItem = pickedImages[selectedIndex];
+                    pickedImages.removeAt(selectedIndex);
+                    pickedImages.insert(selectedIndex - 1, selectedItem);
+                    selectedIndex = selectedIndex - 1;
+                  });
+                },
                 tooltip: 'Move selected image up',
               ),
               IconButton(
                 iconSize: 30.0,
                 icon: const Icon(Icons.arrow_downward),
-                onPressed: () {},
+                onPressed: () {
+                  if (selectedIndex < 0 ||
+                      selectedIndex == pickedImages.length - 1) {
+                    return;
+                  }
+                  setState(() {
+                    final selectedItem = pickedImages[selectedIndex];
+                    pickedImages.removeAt(selectedIndex);
+                    pickedImages.insert(selectedIndex + 1, selectedItem);
+                    selectedIndex = selectedIndex + 1;
+                  });
+                },
                 tooltip: 'Move selected image down',
               ),
             ],
