@@ -35,6 +35,13 @@ class _MyHomePageState extends State<MyHomePage> {
   List<File> pickedImages = [];
   int selectedIndex = -1;
 
+  void removeImage() {
+    setState(() {
+      pickedImages.removeAt(selectedIndex);
+      selectedIndex = -1;
+    });
+  }
+
   Future<void> pickImages() async {
     final files = await FileSelectorPlatform.instance.openFiles(
         initialDirectory: await PathProviderLinux().getDownloadsPath());
@@ -98,6 +105,12 @@ class _MyHomePageState extends State<MyHomePage> {
                       icon: const Icon(Icons.add),
                       onPressed: pickImages,
                       tooltip: 'Add images for conversion',
+                    ),
+                    IconButton(
+                      iconSize: 30.0,
+                      icon: const Icon(Icons.remove),
+                      onPressed: selectedIndex == -1 ? null : removeImage,
+                      tooltip: 'Remove the image',
                     ),
                     IconButton(
                       iconSize: 30.0,
