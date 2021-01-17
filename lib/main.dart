@@ -73,6 +73,13 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       pickedImages.clear();
     });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Images have been converted to a PDF'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
