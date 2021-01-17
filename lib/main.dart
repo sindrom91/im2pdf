@@ -174,7 +174,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: convertToPdf,
+        onPressed: pickedImages.isEmpty ? null : convertToPdf,
         tooltip: 'Convert picked images to PDF',
         child: const Icon(Icons.refresh),
       ),
