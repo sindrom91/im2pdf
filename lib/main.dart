@@ -40,7 +40,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> pickImages() async {
     final files = await FileSelectorPlatform.instance.openFiles(
-        initialDirectory: await PathProviderLinux().getDownloadsPath());
+      initialDirectory: await PathProviderLinux().getDownloadsPath(),
+      acceptedTypeGroups: [
+        XTypeGroup(label: 'JPG', extensions: ['jpg', 'jpeg']),
+        XTypeGroup(label: 'PNG', extensions: ['png']),
+      ],
+    );
     setState(() {
       files.forEach((file) {
         pickedImages.add(File(file.path));
@@ -69,6 +74,9 @@ class _MyHomePageState extends State<MyHomePage> {
     final outputFile = File(
       await FileSelectorPlatform.instance.getSavePath(
         initialDirectory: await PathProviderLinux().getDownloadsPath(),
+        acceptedTypeGroups: [
+          XTypeGroup(label: 'PDF', extensions: ['pdf']),
+        ],
       ),
     );
     outputFile.writeAsBytes(await pdf.save());
