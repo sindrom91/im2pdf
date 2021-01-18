@@ -77,6 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
         acceptedTypeGroups: [
           XTypeGroup(label: 'PDF', extensions: ['pdf']),
         ],
+        suggestedName: 'converted.pdf',
       ),
     );
     outputFile.writeAsBytes(await pdf.save());
