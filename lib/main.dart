@@ -71,7 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ));
     });
 
-    final outputFile = File(
+    var outputFile = File(
       await FileSelectorPlatform.instance.getSavePath(
         initialDirectory: await PathProviderLinux().getDownloadsPath(),
         acceptedTypeGroups: [
@@ -80,6 +80,11 @@ class _MyHomePageState extends State<MyHomePage> {
         suggestedName: 'converted.pdf',
       ),
     );
+
+    if (!outputFile.path.endsWith('.pdf')) {
+      outputFile = File(outputFile.path + '.pdf');
+    }
+
     outputFile.writeAsBytes(await pdf.save());
 
     setState(() {
