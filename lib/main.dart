@@ -43,8 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final files = await FileSelectorPlatform.instance.openFiles(
       initialDirectory: downloadsDirectory.path,
       acceptedTypeGroups: [
-        XTypeGroup(label: 'JPG', extensions: ['jpg', 'jpeg']),
-        XTypeGroup(label: 'PNG', extensions: ['png']),
+        XTypeGroup(label: 'Images', extensions: ['jpg', 'jpeg', 'png']),
       ],
     );
     setState(() {
@@ -77,7 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
       await FileSelectorPlatform.instance.getSavePath(
         initialDirectory: downloadsDirectory.path,
         acceptedTypeGroups: [
-          XTypeGroup(label: 'PDF', extensions: ['pdf']),
+          XTypeGroup(label: 'PDFs', extensions: ['pdf']),
         ],
         suggestedName: 'converted.pdf',
       ),
