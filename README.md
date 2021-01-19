@@ -2,8 +2,12 @@
 
 A simple application for converting images to PDFs.
 
-## Build
+## Build and run
 
 ```
 flutter run -d linux
+```
+or
+```
+flutter run -d windows
 ```
