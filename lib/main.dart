@@ -71,22 +71,23 @@ class _MyHomePageState extends State<MyHomePage> {
       ));
     });
 
-    final downloadsDirectory = await getDownloadsDirectory();
-    var outputFile = File(
-      await FileSelectorPlatform.instance.getSavePath(
-        initialDirectory: downloadsDirectory.path,
-        acceptedTypeGroups: [
-          XTypeGroup(label: 'PDFs', extensions: ['pdf']),
-        ],
-        suggestedName: 'converted.pdf',
-      ),
+    var outputPath = await FileSelectorPlatform.instance.getSavePath(
+      initialDirectory: (await getDownloadsDirectory()).path,
+      acceptedTypeGroups: [
+        XTypeGroup(label: 'PDFs', extensions: ['pdf']),
+      ],
+      suggestedName: 'converted.pdf',
     );
 
-    if (!outputFile.path.endsWith('.pdf')) {
-      outputFile = File(outputFile.path + '.pdf');
+    if (outputPath == null) {
+      return;
     }
 
-    outputFile.writeAsBytes(await pdf.save());
+    if (!outputPath.endsWith('.pdf')) {
+      outputPath = outputPath + '.pdf';
+    }
+
+    await File(outputPath).writeAsBytes(await pdf.save());
 
     setState(() {
       pickedImages.clear();
