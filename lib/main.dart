@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:file_selector_platform_interface/file_selector_platform_interface.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider_linux/path_provider_linux.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 void main() {
@@ -39,8 +39,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> pickImages() async {
+    final downloadsDirectory = await getDownloadsDirectory();
     final files = await FileSelectorPlatform.instance.openFiles(
-      initialDirectory: await PathProviderLinux().getDownloadsPath(),
+      initialDirectory: downloadsDirectory.path,
       acceptedTypeGroups: [
         XTypeGroup(label: 'JPG', extensions: ['jpg', 'jpeg']),
         XTypeGroup(label: 'PNG', extensions: ['png']),
@@ -71,9 +72,10 @@ class _MyHomePageState extends State<MyHomePage> {
       ));
     });
 
+    final downloadsDirectory = await getDownloadsDirectory();
     var outputFile = File(
       await FileSelectorPlatform.instance.getSavePath(
-        initialDirectory: await PathProviderLinux().getDownloadsPath(),
+        initialDirectory: downloadsDirectory.path,
         acceptedTypeGroups: [
           XTypeGroup(label: 'PDF', extensions: ['pdf']),
         ],
