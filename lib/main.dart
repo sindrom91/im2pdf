@@ -53,9 +53,9 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Future<void> convertToPdf() async {
+  pw.Document createPdfFromImages(final List<File> images) {
     final pdf = pw.Document();
-    pickedImages.forEach((image) {
+    images.forEach((image) {
       pdf.addPage(pw.Page(
         build: (c) {
           return pw.FullPage(
@@ -70,7 +70,11 @@ class _MyHomePageState extends State<MyHomePage> {
         },
       ));
     });
+    return pdf;
+  }
 
+  Future<void> convertToPdf() async {
+    final pdf = createPdfFromImages(pickedImages);
     var outputPath = await FileSelectorPlatform.instance.getSavePath(
       initialDirectory: (await getDownloadsDirectory()).path,
       acceptedTypeGroups: [
