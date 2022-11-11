@@ -177,14 +177,14 @@ class _MyHomePageState extends State<MyHomePage> {
                       iconSize: 30.0,
                       icon: const Icon(Icons.arrow_upward),
                       onPressed:
-                          selectedIndex == -1 ? null : moveSelectedImageUp,
+                          (selectedIndex == -1 || selectedIndex == 0) ? null : moveSelectedImageUp,
                       tooltip: 'Move selected image up',
                     ),
                     IconButton(
                       iconSize: 30.0,
                       icon: const Icon(Icons.arrow_downward),
                       onPressed:
-                          selectedIndex == -1 ? null : moveSelectedImageDown,
+                          (selectedIndex == -1 || selectedIndex == pickedImages.length - 1) ? null : moveSelectedImageDown,
                       tooltip: 'Move selected image down',
                     ),
                   ],
