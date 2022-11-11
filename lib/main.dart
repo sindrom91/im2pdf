@@ -1,9 +1,10 @@
 import 'dart:io';
 
-import 'package:file_selector_platform_interface/file_selector_platform_interface.dart';
+import 'package:external_path/external_path.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   runApp(MyApp());
@@ -39,15 +40,14 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> pickImages() async {
-    final downloadsDirectory = await getDownloadsDirectory();
-    final files = await FileSelectorPlatform.instance.openFiles(
-      initialDirectory: downloadsDirectory.path,
-      acceptedTypeGroups: [
-        XTypeGroup(label: 'Images', extensions: ['jpg', 'jpeg', 'png']),
-      ],
+    FilePickerResult result = await FilePicker.platform.pickFiles(
+      allowMultiple: true,
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png'],
     );
+    if (result == null) return;
     setState(() {
-      files.forEach((file) {
+      result.files.forEach((file) {
         pickedImages.add(File(file.path));
       });
     });
@@ -75,21 +75,25 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> convertToPdf() async {
     final pdf = createPdfFromImages(pickedImages);
-    var outputPath = await FileSelectorPlatform.instance.getSavePath(
-      initialDirectory: (await getDownloadsDirectory()).path,
-      acceptedTypeGroups: [
-        XTypeGroup(label: 'PDFs', extensions: ['pdf']),
-      ],
-      suggestedName: 'converted.pdf',
-    );
-
-    if (outputPath == null) {
-      return;
+    String outputPath;
+    if (Platform.isAndroid) {
+      if (await Permission.storage.request().isGranted) {
+        outputPath = await ExternalPath.getExternalStoragePublicDirectory(
+            ExternalPath.DIRECTORY_DOWNLOADS);
+        outputPath += '/converted.pdf';
+      } else {
+        return;
+      }
+    } else {
+      outputPath = await FilePicker.platform.saveFile(
+        dialogTitle: 'Please select an output file:',
+        fileName: 'converted.pdf',
+      );
     }
 
-    if (!outputPath.endsWith('.pdf')) {
-      outputPath = outputPath + '.pdf';
-    }
+    if (outputPath == null) return;
+
+    if (!outputPath.endsWith('.pdf')) outputPath = outputPath + '.pdf';
 
     await File(outputPath).writeAsBytes(await pdf.save());
 
@@ -108,6 +112,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Image to PDF converter'),
+      ),
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
