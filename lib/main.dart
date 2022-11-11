@@ -50,7 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> pickImages() async {
-    FilePickerResult result = await FilePicker.platform.pickFiles(
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
       allowMultiple: true,
       type: FileType.custom,
       allowedExtensions: ['jpg', 'jpeg', 'png'],
@@ -60,7 +60,9 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     setState(() {
       result.files.forEach((file) {
-        pickedImages.add(File(file.path));
+        if (file.path != null) {
+          pickedImages.add(File(file.path as String));
+        }
       });
     });
   }
@@ -111,7 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> convertToPdf() async {
     final pdf = createPdfFromImages();
-    String outputPath;
+    String? outputPath;
     if (Platform.isAndroid) {
       if (await Permission.storage.request().isGranted) {
         outputPath = await ExternalPath.getExternalStoragePublicDirectory(
