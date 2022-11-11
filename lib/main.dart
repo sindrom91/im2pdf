@@ -32,6 +32,16 @@ class _MyHomePageState extends State<MyHomePage> {
   List<File> pickedImages = [];
   int selectedIndex = -1;
 
+  static const permissionError = SnackBar(
+    content: const Text('No permission to write to local storage'),
+    duration: const Duration(seconds: 2),
+  );
+
+  static const conversionSuccessful = SnackBar(
+    content: const Text('Images have been converted to a PDF'),
+    duration: const Duration(seconds: 2),
+  );
+
   void removeImage() {
     setState(() {
       pickedImages.removeAt(selectedIndex);
@@ -45,7 +55,9 @@ class _MyHomePageState extends State<MyHomePage> {
       type: FileType.custom,
       allowedExtensions: ['jpg', 'jpeg', 'png'],
     );
-    if (result == null) return;
+    if (result == null) {
+      return;
+    }
     setState(() {
       result.files.forEach((file) {
         pickedImages.add(File(file.path));
@@ -53,9 +65,33 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  pw.Document createPdfFromImages(final List<File> images) {
+  void moveSelectedImageUp() {
+    if (selectedIndex <= 0) {
+      return;
+    }
+    setState(() {
+      final selectedItem = pickedImages[selectedIndex];
+      pickedImages.removeAt(selectedIndex);
+      pickedImages.insert(selectedIndex - 1, selectedItem);
+      selectedIndex = selectedIndex - 1;
+    });
+  }
+
+  void moveSelectedImageDown() {
+    if (selectedIndex < 0 || selectedIndex == pickedImages.length - 1) {
+      return;
+    }
+    setState(() {
+      final selectedItem = pickedImages[selectedIndex];
+      pickedImages.removeAt(selectedIndex);
+      pickedImages.insert(selectedIndex + 1, selectedItem);
+      selectedIndex = selectedIndex + 1;
+    });
+  }
+
+  pw.Document createPdfFromImages() {
     final pdf = pw.Document();
-    images.forEach((image) {
+    pickedImages.forEach((image) {
       pdf.addPage(pw.Page(
         build: (c) {
           return pw.FullPage(
@@ -74,7 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> convertToPdf() async {
-    final pdf = createPdfFromImages(pickedImages);
+    final pdf = createPdfFromImages();
     String outputPath;
     if (Platform.isAndroid) {
       if (await Permission.storage.request().isGranted) {
@@ -82,6 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ExternalPath.DIRECTORY_DOWNLOADS);
         outputPath += '/converted.pdf';
       } else {
+        ScaffoldMessenger.of(context).showSnackBar(permissionError);
         return;
       }
     } else {
@@ -91,22 +128,21 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     }
 
-    if (outputPath == null) return;
+    if (outputPath == null) {
+      return;
+    }
 
-    if (!outputPath.endsWith('.pdf')) outputPath = outputPath + '.pdf';
+    if (!outputPath.endsWith('.pdf')) {
+      outputPath = outputPath + '.pdf';
+    }
 
-    await File(outputPath).writeAsBytes(await pdf.save());
+    File(outputPath).writeAsBytesSync(await pdf.save());
 
     setState(() {
       pickedImages.clear();
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Images have been converted to a PDF'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(conversionSuccessful);
   }
 
   @override
@@ -138,34 +174,15 @@ class _MyHomePageState extends State<MyHomePage> {
                     IconButton(
                       iconSize: 30.0,
                       icon: const Icon(Icons.arrow_upward),
-                      onPressed: () {
-                        if (selectedIndex <= 0) {
-                          return;
-                        }
-                        setState(() {
-                          final selectedItem = pickedImages[selectedIndex];
-                          pickedImages.removeAt(selectedIndex);
-                          pickedImages.insert(selectedIndex - 1, selectedItem);
-                          selectedIndex = selectedIndex - 1;
-                        });
-                      },
+                      onPressed:
+                          selectedIndex == -1 ? null : moveSelectedImageUp,
                       tooltip: 'Move selected image up',
                     ),
                     IconButton(
                       iconSize: 30.0,
                       icon: const Icon(Icons.arrow_downward),
-                      onPressed: () {
-                        if (selectedIndex < 0 ||
-                            selectedIndex == pickedImages.length - 1) {
-                          return;
-                        }
-                        setState(() {
-                          final selectedItem = pickedImages[selectedIndex];
-                          pickedImages.removeAt(selectedIndex);
-                          pickedImages.insert(selectedIndex + 1, selectedItem);
-                          selectedIndex = selectedIndex + 1;
-                        });
-                      },
+                      onPressed:
+                          selectedIndex == -1 ? null : moveSelectedImageDown,
                       tooltip: 'Move selected image down',
                     ),
                   ],
