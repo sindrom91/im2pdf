@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:external_path/external_path.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -28,9 +27,77 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
+class FileList {
+  final List<File> l = [];
+  var selectedElement = -1;
+
+  FileList();
+
+  int get length => l.length;
+  bool get isEmpty => length == 0;
+  File operator [](int index) => l[index];
+  void operator []=(int index, File value) => l[index] = value;
+  void add(File f) => l.add(f);
+
+  bool canMoveUp() => selectedElement > 0;
+  bool canMoveDown() => selectedElement != l.length -1 && selectedElement != -1;
+  bool isAnythingSelected() => selectedElement != -1;
+  bool isElementSelected(int i) => selectedElement == i;
+  void selectElement(int i) => selectedElement = i;
+  void unselectElement() => selectedElement = -1;
+
+  void moveUp() {
+    if (selectedElement <= 0) {
+      return;
+    }
+    swap(selectedElement, selectedElement - 1);
+    selectedElement = selectedElement - 1;
+  }
+
+  void moveDown() {
+    if (selectedElement < 0 || selectedElement == l.length - 1) {
+      return;
+    }
+    swap(selectedElement, selectedElement + 1);
+    selectedElement = selectedElement + 1;
+  }
+
+  void swap(int index1, int index2) {
+    var length = l.length;
+    RangeError.checkValidIndex(index1, l, "index1", length);
+    RangeError.checkValidIndex(index2, l, "index2", length);
+    if (index1 != index2) {
+      var tmp1 = l[index1];
+      l[index1] = l[index2];
+      l[index2] = tmp1;
+    }
+  }
+
+  File getSelectedFile() => this[selectedElement];
+
+  void removeSelected() {
+    l.removeAt(selectedElement);
+    selectedElement = -1;
+  }
+
+  void clear() {
+    l.clear();
+    selectedElement = -1;
+  }
+
+  void forEach(void action(File element)) {
+    int length = this.length;
+    for (int i = 0; i < length; i++) {
+      action(this[i]);
+      if (length != this.length) {
+        throw ConcurrentModificationError(this);
+      }
+    }
+  }
+}
+
 class _MyHomePageState extends State<MyHomePage> {
-  List<File> pickedImages = [];
-  int selectedIndex = -1;
+  var images = FileList();
 
   static const permissionError = SnackBar(
     content: const Text('No permission to write to local storage'),
@@ -44,8 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void removeImage() {
     setState(() {
-      pickedImages.removeAt(selectedIndex);
-      selectedIndex = -1;
+      images.removeSelected();
     });
   }
 
@@ -61,39 +127,27 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       result.files.forEach((file) {
         if (file.path != null) {
-          pickedImages.add(File(file.path as String));
+          images.add(File(file.path as String));
         }
       });
     });
   }
 
   void moveSelectedImageUp() {
-    if (selectedIndex <= 0) {
-      return;
-    }
     setState(() {
-      final selectedItem = pickedImages[selectedIndex];
-      pickedImages.removeAt(selectedIndex);
-      pickedImages.insert(selectedIndex - 1, selectedItem);
-      selectedIndex = selectedIndex - 1;
+      images.moveUp();
     });
   }
 
   void moveSelectedImageDown() {
-    if (selectedIndex < 0 || selectedIndex == pickedImages.length - 1) {
-      return;
-    }
     setState(() {
-      final selectedItem = pickedImages[selectedIndex];
-      pickedImages.removeAt(selectedIndex);
-      pickedImages.insert(selectedIndex + 1, selectedItem);
-      selectedIndex = selectedIndex + 1;
+      images.moveDown();
     });
   }
 
   pw.Document createPdfFromImages() {
     final pdf = pw.Document();
-    pickedImages.forEach((image) {
+    images.forEach((image) {
       pdf.addPage(pw.Page(
         build: (c) {
           return pw.FullPage(
@@ -113,35 +167,31 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> convertToPdf() async {
     final pdf = createPdfFromImages();
+    final pdfBytes = await pdf.save();
     String? outputPath;
     if (Platform.isAndroid) {
-      if (await Permission.storage.request().isGranted) {
-        outputPath = await ExternalPath.getExternalStoragePublicDirectory(
-            ExternalPath.DIRECTORY_DOWNLOADS);
-        outputPath += '/converted.pdf';
-      } else {
+      if (!await Permission.storage.request().isGranted) {
         ScaffoldMessenger.of(context).showSnackBar(permissionError);
         return;
       }
-    } else {
-      outputPath = await FilePicker.platform.saveFile(
-        dialogTitle: 'Please select an output file:',
-        fileName: 'converted.pdf',
-      );
     }
+
+    outputPath = await FilePicker.platform.saveFile(
+      dialogTitle: 'Please select an output file:',
+      fileName: 'converted.pdf',
+      type: FileType.custom,
+      allowedExtensions: ["pdf"],
+      bytes: pdfBytes,
+    );
 
     if (outputPath == null) {
       return;
     }
 
-    if (!outputPath.endsWith('.pdf')) {
-      outputPath = outputPath + '.pdf';
-    }
-
-    File(outputPath).writeAsBytesSync(await pdf.save());
+    if (!Platform.isAndroid) File(outputPath).writeAsBytesSync(pdfBytes);
 
     setState(() {
-      pickedImages.clear();
+      images.clear();
     });
 
     ScaffoldMessenger.of(context).showSnackBar(conversionSuccessful);
@@ -170,21 +220,19 @@ class _MyHomePageState extends State<MyHomePage> {
                     IconButton(
                       iconSize: 30.0,
                       icon: const Icon(Icons.remove),
-                      onPressed: selectedIndex == -1 ? null : removeImage,
+                      onPressed: images.isAnythingSelected() ? removeImage : null,
                       tooltip: 'Remove the image',
                     ),
                     IconButton(
                       iconSize: 30.0,
                       icon: const Icon(Icons.arrow_upward),
-                      onPressed:
-                          (selectedIndex == -1 || selectedIndex == 0) ? null : moveSelectedImageUp,
+                      onPressed: images.canMoveUp() ? moveSelectedImageUp : null,
                       tooltip: 'Move selected image up',
                     ),
                     IconButton(
                       iconSize: 30.0,
                       icon: const Icon(Icons.arrow_downward),
-                      onPressed:
-                          (selectedIndex == -1 || selectedIndex == pickedImages.length - 1) ? null : moveSelectedImageDown,
+                      onPressed: images.canMoveDown() ? moveSelectedImageDown : null,
                       tooltip: 'Move selected image down',
                     ),
                   ],
@@ -192,19 +240,19 @@ class _MyHomePageState extends State<MyHomePage> {
                 Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.all(10),
-                    itemCount: pickedImages.length,
+                    itemCount: images.length,
                     itemBuilder: (context, index) => Container(
-                      color: selectedIndex == index
+                      color: images.isElementSelected(index)
                           ? Colors.blue.withOpacity(0.5)
                           : Colors.transparent,
                       child: ListTile(
-                        title: Text(pickedImages[index].path),
+                        title: Text(images[index].path),
                         onTap: () {
                           setState(() {
-                            if (selectedIndex == index) {
-                              selectedIndex = -1;
+                            if (images.isElementSelected(index)) {
+                              images.unselectElement();
                             } else {
-                              selectedIndex = index;
+                              images.selectElement(index);
                             }
                           });
                         },
@@ -215,7 +263,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
             ),
           ),
-          if (selectedIndex >= 0)
+          if (images.isAnythingSelected())
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(
@@ -223,13 +271,13 @@ class _MyHomePageState extends State<MyHomePage> {
                   top: 10,
                   bottom: 10,
                 ),
-                child: Image.file(pickedImages[selectedIndex]),
+                child: Image.file(images.getSelectedFile()),
               ),
             ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: pickedImages.isEmpty ? null : convertToPdf,
+        onPressed: !images.isEmpty ? convertToPdf : null,
         tooltip: 'Convert picked images to PDF',
         child: const Icon(Icons.refresh),
       ),
